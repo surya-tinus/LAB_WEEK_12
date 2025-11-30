@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun openMovieDetails(movie: Movie) {
         val intent = Intent(this, DetailsActivity::class.java).apply {
             putExtra(DetailsActivity.EXTRA_TITLE, movie.title)
