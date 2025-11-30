@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.test_lab_week_12.model.Movie
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
     private val movieAdapter by lazy {
@@ -37,28 +38,30 @@ class MainActivity : AppCompatActivity() {
                 }
             })[MovieViewModel::class.java]
 
-
-        // lifecycleScope is a lifecycle-aware coroutine scope
         lifecycleScope.launch {
-            // repeatOnLifecycle is a lifecycle-aware coroutine builder
-            // Lifecycle.State.STARTED means that the coroutine will run
-            // when the activity is started
             repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                // Coroutine 1: Collect movies
+                // Coroutine 1: Collect movies with FILTERING restored
                 launch {
-                    // collect the list of movies from the StateFlow
                     movieViewModel.popularMovies.collect { movies ->
-                        // add the list of movies to the adapter
-                        movieAdapter.addMovies(movies)
+                        // 1. Get current year
+                        val currentYear = Calendar.getInstance().get(Calendar.YEAR).toString()
+
+                        // 2. Filter and Sort
+                        val filteredMovies = movies
+                            .filter { movie ->
+                                movie.releaseDate?.startsWith(currentYear) == true
+                            }
+                            .sortedByDescending { it.popularity }
+
+                        // 3. Update Adapter
+                        movieAdapter.addMovies(filteredMovies)
                     }
                 }
 
                 // Coroutine 2: Collect errors
                 launch {
-                    // collect the error message from the StateFlow
                     movieViewModel.error.collect { error ->
-                        // if an error occurs, show a Snackbar with the error message
                         if (error.isNotEmpty()) {
                             Snackbar.make(
                                 recyclerView, error, Snackbar.LENGTH_LONG
